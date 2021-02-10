@@ -21,7 +21,5 @@ pkexec --user Debian-gdm dbus-run-session gsettings set org.gnome.shell password
 
 bash $mydir/content-cleanup.sh
 
-if [ -x /home/jadmin/setup-wifi.sh ]; then
-  echo "Starting WiFi setup..."
-  /home/jadmin/setup-wifi.sh
-fi
+echo "Starting WiFi setup..."
+bash $mydir/setup-wifi.sh
