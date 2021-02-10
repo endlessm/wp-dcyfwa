@@ -3,7 +3,6 @@
 # This should only be run on newly flashed machines, as the operations are NOT
 # idempotent.
 
-mydir=$(readlink -f $(dirname $0))
 if [[ "$EUID" != 0 ]]; then
 	echo "Requesting root privileges"
 	exec sudo bash $(readlink -f $0)
@@ -42,14 +41,3 @@ userdel -r student || :
 read -p "Please enter the current date (YYYYMMDD) : " userdate
 read -p "Please enter the current time (HH:MM) : " usertime
 date -s "$userdate $usertime"
-
-systemctl enable --now ssh
-
-pkexec --user Debian-gdm dbus-run-session gsettings set org.gnome.shell password-reset-allowed disable &>/dev/null
-
-bash $mydir/content-cleanup.sh
-
-if [ -x /home/jadmin/setup-wifi.sh ]; then
-  echo "Starting WiFi setup..."
-  /home/jadmin/setup-wifi.sh
-fi
