@@ -24,6 +24,17 @@ bash $mydir/content-cleanup.sh
 echo "Starting WiFi setup..."
 bash $mydir/setup-wifi.sh
 
+echo "Disabling automatic OS updates"
+mkdir -p /etc/systemd/system-preset
+cat <<EOF >/etc/systemd/system-preset/40-disable-automatic-os-updates.preset
+disable eos-autoupdater.timer
+disable eos-autoupdater.service
+EOF
+systemctl preset eos-autoupdater.timer
+systemctl stop eos-autoupdater.timer
+systemctl preset eos-autoupdater.service
+systemctl mask --now eos-updater.service
+
 # Remove the rollback ostree deployment, if needed
 deployed_versions=()
 for v in $(ostree admin status | awk '/Version/ { print $2 }') ; do
