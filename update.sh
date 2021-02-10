@@ -41,6 +41,9 @@ systemctl stop eos-autoupdater.timer
 systemctl preset eos-autoupdater.service
 systemctl mask --now eos-updater.service
 
+echo "Disabling app updates"
+gsettings set org.gnome.software download-updates false
+
 # Remove the rollback ostree deployment, if needed
 deployed_versions=()
 for v in $(ostree admin status | awk '/Version/ { print $2 }') ; do
