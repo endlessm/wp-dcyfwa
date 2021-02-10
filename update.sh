@@ -15,7 +15,13 @@ error_handler() {
 }
 trap error_handler ERR
 
-systemctl enable --now ssh
+echo "Enabling remote access via SSH"
+mkdir -p /etc/systemd/system-preset
+cat <<EOF >/etc/systemd/system-preset/40-ssh.preset
+enable ssh.service
+EOF
+systemctl preset ssh.service
+systemctl start ssh.service
 
 pkexec --user Debian-gdm dbus-run-session gsettings set org.gnome.shell password-reset-allowed disable &>/dev/null
 
