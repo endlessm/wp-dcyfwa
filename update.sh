@@ -23,3 +23,24 @@ bash $mydir/content-cleanup.sh
 
 echo "Starting WiFi setup..."
 bash $mydir/setup-wifi.sh
+
+# Remove the rollback ostree deployment, if needed
+deployed_versions=()
+for v in $(ostree admin status | awk '/Version/ { print $2 }') ; do
+	deployed_versions+=( $v )
+done
+echo "Deployed ostree versions: ${deployed_versions[@]}"
+
+if [ ${#deployed_versions[@]} -gt 1 ] ; then
+	echo "Found more than one deployed ostree, ${deployed_versions[1]} is set to be removed."
+	echo "If this is not the version that should be removed, please reboot"
+	echo "into the correct OS version and re-run this script. Do you want to continue?"
+	select yn in "Yes" "No"; do
+		case $yn in
+			Yes ) break;;
+			No ) exit 0;;
+		esac
+	done
+	echo "Removing rollback ostree ${deployed_versions[1]}"
+	ostree admin undeploy 1
+fi
