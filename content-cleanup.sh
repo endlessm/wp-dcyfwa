@@ -1,5 +1,5 @@
 #!/bin/bash
-mydir=$(readlink -f $(dirname $0))
+mydir=$(readlink -f "$(dirname $0)")
 cleanup_file=$mydir/content-cleanup.lst
 
 while read glob || [[ -n $glob ]]; do

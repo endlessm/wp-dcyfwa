@@ -5,7 +5,7 @@
 
 if [[ "$EUID" != 0 ]]; then
 	echo "Requesting root privileges"
-	exec sudo bash $(readlink -f $0)
+	exec sudo bash "$(readlink -f $0)"
 	exit 1
 fi
 

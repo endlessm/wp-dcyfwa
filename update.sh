@@ -2,10 +2,10 @@
 # World Possible DCYF-WA update script
 # This script may be run multiple times, so all operations need to be idempotent
 
-mydir=$(readlink -f $(dirname $0))
+mydir=$(readlink -f "$(dirname $0)")
 if [[ "$EUID" != 0 ]]; then
 	echo "Requesting root privileges"
-	exec sudo bash $(readlink -f $0)
+	exec sudo bash "$(readlink -f $0)"
 	exit 1
 fi
 
@@ -47,9 +47,9 @@ gsettings set org.gnome.software download-updates false
 # Remove the rollback ostree deployment, if needed
 deployed_versions=()
 for v in $(ostree admin status | awk '/Version/ { print $2 }') ; do
-	deployed_versions+=( $v )
+	deployed_versions+=( "$v" )
 done
-echo "Deployed ostree versions: ${deployed_versions[@]}"
+echo "Deployed ostree versions: ${deployed_versions[*]}"
 
 if [ ${#deployed_versions[@]} -gt 1 ] ; then
 	echo "Found more than one deployed ostree, ${deployed_versions[1]} is set to be removed."
