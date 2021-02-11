@@ -15,6 +15,8 @@ error_handler() {
 }
 trap error_handler ERR
 
+exec &> >(tee -a update.log)
+
 echo "Enabling remote access via SSH"
 mkdir -p /etc/systemd/system-preset
 cat <<EOF >/etc/systemd/system-preset/40-ssh.preset
