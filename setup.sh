@@ -41,3 +41,5 @@ userdel -r student || :
 read -p "Please enter the current date (YYYYMMDD) : " userdate
 read -p "Please enter the current time (HH:MM) : " usertime
 date -s "$userdate $usertime"
+
+bash $mydir/update.sh
