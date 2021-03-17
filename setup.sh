@@ -3,6 +3,7 @@
 # This should only be run on newly flashed machines, as the operations are NOT
 # idempotent.
 
+mydir=$(readlink -f "$(dirname $0)")
 if [[ "$EUID" != 0 ]]; then
 	echo "Requesting root privileges"
 	exec sudo bash "$(readlink -f $0)"
