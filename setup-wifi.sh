@@ -1,18 +1,20 @@
 #!/bin/bash
 # -------------------------------------------------------------------------------------------------
-# Script: setup-wifi.sh  | Rev: 2.01 (210207)
+# Script: setup-wifi.sh  | Rev: 2.04 (210322)
 # Author: Steve Bashford | Email: steve@worldpossible.org
 # Action: Connect only to given target wifi SSID (no doc/wifi in range: run & reboot when in range)
 # -------------------------------------------------------------------------------------------------
 
 # Set Vars:
-  SSID="$1"            # Wifi SSID
-  PSWD="$2"            # Wifi PSWD
-  LOGX="wifi.log"      # Install log
-  CRED="wifi-creds"    # SSID/PSWD file
-  HDIR="/etc/network"  # Install home dir
-  SCPT="setup-wifi.sh" # Script name
-  SRVF="/etc/systemd/system/wifi-connect"
+  SSID="$1"                                                    # Wifi SSID
+  PSWD="$2"                                                    # Wifi PSWD
+  LOGX="wifi.log"                                              # Install log
+  CRED="wifi-creds"                                            # SSID/PSWD file
+  HDIR="/etc/network"                                          # Feature home dir
+  SCPT="setup-wifi.sh"                                         # Script name
+  SRVF="/etc/systemd/system/wifi-connect"                      # wifi service
+  NMSC="/etc/NetworkManager/system-connections"                # wifi connections
+  RULS="/etc/polkit-1/rules.d/10-wp-eos-wifi-admin-only.rules" # wifi rules
 
 # Log cleanup:
   if   [ -e "${HDIR}/${LOGX}" ]; then sudo rm "${HDIR}/${LOGX}"; fi
@@ -56,10 +58,7 @@
 
 # Set wifi rules: ---------------------------------------------------------------------------------
   swr_f(){
-    RULS="/etc/polkit-1/rules.d/10-wp-eos-wifi-admin-only.rules"
-
     if   [[ $(sudo ls "${RULS}" 2>/dev/null) ]]; then
-    #if   [ -f "${RULS}" ]; then
          echo "  Wifi rules file found" | ptl_f
          AUTH=$(sudo grep AUTH_ADMIN "${RULS}"  | awk -F '.' '{print $3}' | sed 's/;//')
          HNDL=$(sudo grep NOT_HANDLED "${RULS}" | awk -F '.' '{print $3}' | sed 's/;//')
@@ -183,7 +182,7 @@
     else pre_f # User sets SSID/PSWD
          echo "  Finalized - SSID: ${SSID} | PSWD: ${PSWD}" | ptl_f
          sudo bash -c "echo ${SSID} ${PSWD} > ${HDIR}/${CRED}"
-    fi;  wfd_f # Delete wifi connections
+    fi;  wfd_f    # Delete wifi connections
   }
 
 # Pipe final SSID/PSWD to creds file & log:
@@ -214,7 +213,7 @@
 
 # Delete all wifi connections:
   wfd_f(){
-    NMNG=$(ls /etc/NetworkManager/system-connections | wc -l)
+    NMNG=$(ls "${NMSC}" | wc -l)
     if   [ "${NMNG}" -gt "0" ]; then
          echo "  Deleting legacy wifi connections"        | ptl_f
          sudo rm /etc/NetworkManager/system-connections/* | ptl_f
@@ -225,11 +224,16 @@
 
 # Connect to wifi:
   con_f(){
-    sleep 10s
-    CNFM=$(sudo nmcli dev wifi | grep " ${SSID} " | awk '{print $1}' | head -n1)
-    echo "  Confirm SSID detection: ${CNFM}" | ptl_f
 
-    if   [ ! -z "${CNFM}" ]; then
+    # Set wifi detect retry counter
+    if   [ -z "${CNFX}" ]; then CNFX="1"; fi
+
+    CNFM=$(sudo nmcli dev wifi | grep " ${SSID} " | awk '{print $1}' | head -n1)
+
+    if   [ -z "${CNFM}" ] && [ "${CNFX}" -le "7" ]; then
+         echo "  WiFi detect retry: ${CNFX}" | ptl_f
+         ((CNFX=CNFX+1)); sleep 3s; con_f
+    elif [ ! -z "${CNFM}" ]; then
          echo "  Connecing to SSID: ${SSID}" | ptl_f
          sudo nmcli dev wifi connect "${SSID}" password "${PSWD}" > /dev/null 2>&1
          sleep 2s
