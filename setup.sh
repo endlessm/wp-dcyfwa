@@ -3,6 +3,8 @@
 # This should only be run on newly flashed machines, as the operations are NOT
 # idempotent.
 
+mydir=$(readlink -f "$(dirname $0)")
+
 if [[ "$EUID" != 0 ]]; then
 	echo "Requesting root privileges"
 	exec sudo bash "$(readlink -f $0)"
@@ -41,3 +43,9 @@ userdel -r student || :
 read -p "Please enter the current date (YYYYMMDD) : " userdate
 read -p "Please enter the current time (HH:MM) : " usertime
 date -s "$userdate $usertime"
+
+# Call the setup-wifi.sh program from the same directory
+# this program is running from
+if [ -x ${mydir}/setup-wifi.sh ] ; then
+	${mydir}/setup-wifi.sh
+fi
